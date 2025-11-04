@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react';
-import { CreditCard, DollarSign, CheckCircle, TrendingUp } from 'lucide-react';
+import { CreditCard, IndianRupee, CheckCircle, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
 import usePaymentStore from '../../store/paymentStore';
 import { initiateRazorpayPayment } from '../../utils/razorpay';
@@ -65,7 +65,7 @@ function Payments() {
 
   const cardStats = [
     { title: 'Total Transactions', value: stats.totalTransactions, icon: <CreditCard />, color: 'blue' },
-    { title: 'Total Amount', value: `₹${stats.totalAmount.toFixed(2)}`, icon: <DollarSign />, color: 'green' },
+    { title: 'Total Amount', value: `₹${stats.totalAmount.toFixed(2)}`, icon: <IndianRupee />, color: 'green' },
     { title: 'Success Rate', value: `${stats.successRate}%`, icon: <CheckCircle />, color: 'purple' },
     { title: 'Successful', value: stats.successfulTransactions, icon: <TrendingUp />, color: 'orange' },
   ];

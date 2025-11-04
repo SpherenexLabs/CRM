@@ -149,7 +149,7 @@ function StoreManagement() {
 
             <div className="form-group">
               <label>
-                <User size={16} /> Manager Name
+                <User size={16} /> Customer Name
               </label>
               <input
                 type="text"

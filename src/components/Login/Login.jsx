@@ -3,7 +3,7 @@ import { LogIn, Lock, User } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import './Login.css';
 
-function Login({ onLoginSuccess }) {
+function Login() {
   const [credentials, setCredentials] = useState({
     username: '',
     password: ''
@@ -17,11 +17,10 @@ function Login({ onLoginSuccess }) {
 
     const result = login(credentials.username, credentials.password);
     
-    if (result.success) {
-      onLoginSuccess();
-    } else {
+    if (!result.success) {
       setError(result.message);
     }
+    // If successful, the auth state will update and App.jsx will re-render automatically
   };
 
   const quickLogin = (role) => {
@@ -36,7 +35,7 @@ function Login({ onLoginSuccess }) {
     <div className="login-container">
       <div className="login-box">
         <div className="login-header">
-          <h1>Multi-store CRM</h1>
+          <h1>INVENLYTICS</h1>
           <p>Multi-Store Management System</p>
         </div>
 
@@ -81,7 +80,7 @@ function Login({ onLoginSuccess }) {
               <small>username: admin / password: admin123</small>
             </button>
             <button onClick={() => quickLogin('manager')} className="demo-btn">
-              <strong>Store Manager</strong>
+              <strong>Store Customer</strong>
               <small>username: manager1 / password: manager123</small>
             </button>
           </div>

@@ -21,8 +21,8 @@ const useAuthStore = create(
           id: 2,
           username: 'manager1',
           password: 'manager123',
-          role: 'Store Manager',
-          name: 'Sarah Manager',
+          role: 'Store Customer',
+          name: 'Sarah Customer',
           email: 'sarah@spherenex.com',
           storeId: 1,
           permissions: ['inventory', 'orders', 'sales', 'delivery']
@@ -31,7 +31,7 @@ const useAuthStore = create(
           id: 3,
           username: 'manager2',
           password: 'manager123',
-          role: 'Store Manager',
+          role: 'Store Customer',
           name: 'Mike Store',
           email: 'mike@spherenex.com',
           storeId: 2,
@@ -80,10 +80,10 @@ const useAuthStore = create(
         return currentUser?.role === 'Super Admin';
       },
 
-      // Check if Store Manager
+      // Check if Store Customer
       isStoreManager: () => {
         const { currentUser } = get();
-        return currentUser?.role === 'Store Manager';
+        return currentUser?.role === 'Store Customer';
       },
 
       // Get accessible stores
@@ -95,7 +95,7 @@ const useAuthStore = create(
           return allStores;
         }
         
-        if (currentUser.role === 'Store Manager' && currentUser.storeId) {
+        if (currentUser.role === 'Store Customer' && currentUser.storeId) {
           return allStores.filter(store => store.id === currentUser.storeId);
         }
         

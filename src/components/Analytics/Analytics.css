@@ -24,7 +24,7 @@
 
 .user-info {
   text-align: right;
-  background: white;
+  background: rgb(94, 92, 92);
   padding: 1rem 1.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);

@@ -240,7 +240,7 @@ function MLInsights() {
                       </span>
                     </div>
                     <div className="value-stats">
-                      <span>LTV: ${cv.lifetimeValue.toFixed(0)}</span>
+                      <span>LTV: ₹{cv.lifetimeValue.toFixed(0)}</span>
                       <span>Score: {cv.valueScore}</span>
                     </div>
                   </div>

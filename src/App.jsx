@@ -10,6 +10,7 @@ import CRM from './components/CRM/CRM';
 import Analytics from './components/Analytics/Analytics';
 import MLInsights from './components/MLInsights/MLInsights';
 import Login from './components/Login/Login';
+import AdminCRM from './components/Admin/AdminCRM';
 import useAuthStore from './store/authStore';
 import useInventoryStore from './store/inventoryStore';
 import useOrderStore from './store/orderStore';
@@ -21,7 +22,7 @@ import './App.css';
 function Navigation() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const location = useLocation();
-  const { user, logout } = useAuthStore();
+  const { currentUser, logout } = useAuthStore();
 
   const navItems = [
     { path: '/', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
@@ -61,12 +62,12 @@ function Navigation() {
 
       <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <h2>Multi-store CRM</h2>
-          <p>Multi-Store Management</p>
-          {user && (
+          <h2>INVENLYTICS</h2>
+          <p>Inventory Management</p>
+          {currentUser && (
             <div className="user-info">
-              <span className="user-name">{user.name}</span>
-              <span className="user-role">{user.role}</span>
+              <span className="user-name">{currentUser.name}</span>
+              <span className="user-role">{currentUser.role}</span>
             </div>
           )}
         </div>
@@ -102,24 +103,13 @@ function Navigation() {
   );
 }
 
-function ProtectedRoute({ children }) {
-  const { isAuthenticated } = useAuthStore();
-  
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-  
-  return children;
-}
-
 function App() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, currentUser } = useAuthStore();
   const initializeInventory = useInventoryStore(state => state.initializeInventory);
   const initializeOrders = useOrderStore(state => state.initializeOrders);
   const initializePayments = usePaymentStore(state => state.initializePayments);
   const initializeDelivery = useDeliveryStore(state => state.initializeDelivery);
   const initializeCustomers = useCustomerStore(state => state.initializeCustomers);
-  const [showLogin, setShowLogin] = useState(!isAuthenticated);
 
   // Initialize ALL Firebase listeners when app loads
   useEffect(() => {
@@ -132,28 +122,43 @@ function App() {
     }
   }, [isAuthenticated, initializeInventory, initializeOrders, initializePayments, initializeDelivery, initializeCustomers]);
 
-  const handleLoginSuccess = () => {
-    setShowLogin(false);
-  };
+  // Check if user is Super Admin
+  const isSuperAdmin = currentUser?.role === 'Super Admin';
+
+  // Show login if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <Router>
+        <Routes>
+          <Route path="*" element={<Login />} />
+        </Routes>
+      </Router>
+    );
+  }
 
   return (
     <Router>
-      {showLogin ? (
-        <Login onLoginSuccess={handleLoginSuccess} />
+      {isSuperAdmin ? (
+        // Admin Interface
+        <Routes>
+          <Route path="/admin/*" element={<AdminCRM />} />
+          <Route path="*" element={<Navigate to="/admin" replace />} />
+        </Routes>
       ) : (
+        // Manager Interface
         <div className="app-container">
           <Navigation />
           <main className="main-content">
             <Routes>
-              <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
-              <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
-              <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
-              <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
-              <Route path="/delivery" element={<ProtectedRoute><Delivery /></ProtectedRoute>} />
-              <Route path="/crm" element={<ProtectedRoute><CRM /></ProtectedRoute>} />
-              <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-              <Route path="/ml-insights" element={<ProtectedRoute><MLInsights /></ProtectedRoute>} />
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/inventory" element={<Inventory />} />
+              <Route path="/orders" element={<Orders />} />
+              <Route path="/payments" element={<Payments />} />
+              <Route path="/delivery" element={<Delivery />} />
+              <Route path="/crm" element={<CRM />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/ml-insights" element={<MLInsights />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
         </div>

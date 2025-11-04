@@ -1,5 +1,5 @@
 ﻿import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, Package, ShoppingCart, Users, DollarSign, Truck } from 'lucide-react';
+import { TrendingUp, Package, ShoppingCart, Users, IndianRupee, Truck } from 'lucide-react';
 import useInventoryStore from '../../store/inventoryStore';
 import useOrderStore from '../../store/orderStore';
 import useCustomerStore from '../../store/customerStore';
@@ -22,7 +22,7 @@ function Dashboard() {
       title: 'Total Revenue',
       value: `₹${totalRevenue.toLocaleString()}`,
       change: '+12.5%',
-      icon: <DollarSign className="stat-icon" />,
+      icon: <IndianRupee className="stat-icon" />,
       color: 'green'
     },
     {
@@ -48,22 +48,38 @@ function Dashboard() {
     }
   ];
 
-  // Calculate revenue by month from actual orders
+  // Calculate revenue by month from actual orders - show last 6 months
   const revenueData = (() => {
-    const monthlyRevenue = {};
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
     
-    orders.forEach(order => {
-      if (order.orderDate) {
-        const month = monthNames[new Date(order.orderDate).getMonth()];
-        monthlyRevenue[month] = (monthlyRevenue[month] || 0) + order.totalAmount;
-      }
+    // Get last 6 months
+    const last6Months = [];
+    for (let i = 5; i >= 0; i--) {
+      const monthIndex = (currentMonth - i + 12) % 12;
+      const year = currentMonth - i < 0 ? currentYear - 1 : currentYear;
+      last6Months.push({ monthIndex, year, name: monthNames[monthIndex] });
+    }
+    
+    // Calculate revenue for each month
+    return last6Months.map(({ monthIndex, year, name }) => {
+      const monthRevenue = orders
+        .filter(order => {
+          if (!order.orderDate) return false;
+          const orderDate = new Date(order.orderDate);
+          return orderDate.getMonth() === monthIndex && 
+                 orderDate.getFullYear() === year &&
+                 order.paymentStatus === 'paid';
+        })
+        .reduce((sum, order) => sum + (order.grandTotal || 0), 0);
+      
+      return {
+        month: name,
+        revenue: Math.round(monthRevenue)
+      };
     });
-
-    return monthNames.map(month => ({
-      month,
-      revenue: monthlyRevenue[month] || 0
-    })).filter(item => item.revenue > 0);
   })();
 
   // Order status distribution
@@ -82,7 +98,7 @@ function Dashboard() {
     <div className="dashboard-container">
       <div className="dashboard-header">
         <h1>Dashboard</h1>
-        <p>Welcome to your Multi-Store CRM System</p>
+        <p>Welcome to your INVENLYTICS System</p>
       </div>
 
       <div className="stats-grid">
@@ -102,15 +118,39 @@ function Dashboard() {
 
       <div className="dashboard-grid">
         <div className="dashboard-card chart-card">
-          <h3>Revenue Trend</h3>
+          <h3>Revenue Trend (Last 6 Months)</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={revenueData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
+            <LineChart data={revenueData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis 
+                dataKey="month" 
+                stroke="#6b7280"
+                style={{ fontSize: '12px' }}
+              />
+              <YAxis 
+                stroke="#6b7280"
+                style={{ fontSize: '12px' }}
+                tickFormatter={(value) => `₹${value.toLocaleString()}`}
+              />
+              <Tooltip 
+                formatter={(value) => [`₹${value.toLocaleString()}`, 'Revenue']}
+                contentStyle={{ 
+                  backgroundColor: '#fff', 
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  padding: '8px 12px'
+                }}
+              />
               <Legend />
-              <Line type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={2} />
+              <Line 
+                type="monotone" 
+                dataKey="revenue" 
+                stroke="#3b82f6" 
+                strokeWidth={3}
+                dot={{ fill: '#3b82f6', r: 5 }}
+                activeDot={{ r: 7 }}
+                name="Revenue"
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>

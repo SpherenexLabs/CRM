@@ -1,6 +1,6 @@
 ﻿import { useState } from 'react';
 import { LineChart, Line, BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { TrendingUp, DollarSign, ShoppingBag, Calendar, Filter } from 'lucide-react';
+import { TrendingUp, IndianRupee, ShoppingBag, Calendar, Filter } from 'lucide-react';
 import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
 import useOrderStore from '../../store/orderStore';
 import useInventoryStore from '../../store/inventoryStore';
@@ -131,7 +131,7 @@ function Analytics() {
       title: 'Total Revenue',
       value: `₹${totalRevenue.toLocaleString()}`,
       change: '+12.5%',
-      icon: <DollarSign size={24} />,
+      icon: <IndianRupee size={24} />,
       color: 'green'
     },
     {

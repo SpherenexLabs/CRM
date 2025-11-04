@@ -25,7 +25,7 @@ export const initiateRazorpayPayment = async (paymentData, onSuccess, onFailure)
     key: RAZORPAY_KEY_ID,
     amount: Math.round(paymentData.amount * 100), // Amount in paise (multiply by 100)
     currency: 'INR',
-    name: 'Multi-store CRM',
+    name: 'INVENLYTICS',
     description: `Payment for Order #${paymentData.orderId}`,
     // Removed image to avoid loading errors
     order_id: paymentData.razorpayOrderId || '', // Optional - for server-side order creation
