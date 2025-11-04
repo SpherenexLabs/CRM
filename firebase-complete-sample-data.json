@@ -1,0 +1,344 @@
+{
+  "stores": {
+    "store1": {
+      "id": 1,
+      "name": "Downtown Store",
+      "location": "123 Main St, Downtown",
+      "manager": "Alice Johnson",
+      "phone": "555-0101"
+    },
+    "store2": {
+      "id": 2,
+      "name": "Uptown Store",
+      "location": "456 Oak Ave, Uptown",
+      "manager": "Bob Smith",
+      "phone": "555-0102"
+    },
+    "store3": {
+      "id": 3,
+      "name": "Suburb Store",
+      "location": "789 Pine Rd, Suburb",
+      "manager": "Carol White",
+      "phone": "555-0103"
+    }
+  },
+  "inventory": {
+    "inv1": {
+      "id": 1,
+      "sku": "ELEC-001",
+      "productName": "Laptop Pro 15",
+      "category": "Electronics",
+      "storeId": 1,
+      "storeName": "Downtown Store",
+      "quantity": 45,
+      "minStock": 10,
+      "maxStock": 100,
+      "price": 85000,
+      "cost": 65000,
+      "supplier": "Tech Suppliers Inc.",
+      "lastRestocked": 1730419200000,
+      "tags": ["electronics", "computers"]
+    },
+    "inv2": {
+      "id": 2,
+      "sku": "ELEC-002",
+      "productName": "Wireless Mouse",
+      "category": "Accessories",
+      "storeId": 1,
+      "storeName": "Downtown Store",
+      "quantity": 150,
+      "minStock": 30,
+      "maxStock": 200,
+      "price": 1200,
+      "cost": 800,
+      "supplier": "Tech Suppliers Inc.",
+      "lastRestocked": 1730592000000,
+      "tags": ["accessories", "electronics"]
+    },
+    "inv3": {
+      "id": 3,
+      "sku": "ELEC-003",
+      "productName": "4K Monitor",
+      "category": "Electronics",
+      "storeId": 2,
+      "storeName": "Uptown Store",
+      "quantity": 28,
+      "minStock": 15,
+      "maxStock": 50,
+      "price": 32000,
+      "cost": 24000,
+      "supplier": "Display World",
+      "lastRestocked": 1730764800000,
+      "tags": ["electronics", "monitors"]
+    },
+    "inv4": {
+      "id": 4,
+      "sku": "ELEC-004",
+      "productName": "Smartphone X",
+      "category": "Electronics",
+      "storeId": 3,
+      "storeName": "Suburb Store",
+      "quantity": 60,
+      "minStock": 20,
+      "maxStock": 100,
+      "price": 45000,
+      "cost": 35000,
+      "supplier": "Mobile Distributors",
+      "lastRestocked": 1730937600000,
+      "tags": ["electronics", "mobile"]
+    }
+  },
+  "customers": {
+    "cust1": {
+      "name": "Alice Johnson",
+      "email": "alice.j@email.com",
+      "phone": "555-1001",
+      "address": "123 Main St, Downtown",
+      "registeredAt": 1705276800000,
+      "totalPurchases": 5,
+      "totalSpent": 7500.50,
+      "loyaltyPoints": 750,
+      "tier": "Gold",
+      "lastPurchase": 1730073600000,
+      "preferredCategories": ["Electronics", "Accessories"],
+      "feedback": [
+        {
+          "date": 1730160000000,
+          "rating": 5,
+          "comment": "Excellent service!"
+        }
+      ]
+    },
+    "cust2": {
+      "name": "Bob Smith",
+      "email": "bob.smith@email.com",
+      "phone": "555-1002",
+      "address": "456 Oak Ave, Uptown",
+      "registeredAt": 1710892800000,
+      "totalPurchases": 3,
+      "totalSpent": 3200.75,
+      "loyaltyPoints": 320,
+      "tier": "Silver",
+      "lastPurchase": 1730246400000,
+      "preferredCategories": ["Electronics"],
+      "feedback": [
+        {
+          "date": 1730332800000,
+          "rating": 4,
+          "comment": "Good experience, fast delivery"
+        }
+      ]
+    },
+    "cust3": {
+      "name": "Carol White",
+      "email": "carol.w@email.com",
+      "phone": "555-1003",
+      "address": "789 Pine Rd, Suburb",
+      "registeredAt": 1725926400000,
+      "totalPurchases": 1,
+      "totalSpent": 1979.97,
+      "loyaltyPoints": 197,
+      "tier": "Bronze",
+      "lastPurchase": 1730505600000,
+      "preferredCategories": ["Electronics"],
+      "feedback": []
+    },
+    "cust4": {
+      "name": "Daniel Brown",
+      "email": "daniel.b@email.com",
+      "phone": "555-1004",
+      "address": "321 Elm St, Downtown",
+      "registeredAt": 1699142400000,
+      "totalPurchases": 12,
+      "totalSpent": 15600.00,
+      "loyaltyPoints": 1560,
+      "tier": "Platinum",
+      "lastPurchase": 1726444800000,
+      "preferredCategories": ["Electronics", "Accessories", "Home"],
+      "feedback": [
+        {
+          "date": 1726531200000,
+          "rating": 5,
+          "comment": "Always satisfied!"
+        }
+      ]
+    }
+  },
+  "orders": {
+    "ord1": {
+      "customerId": "cust1",
+      "customerName": "Alice Johnson",
+      "storeId": 1,
+      "storeName": "Downtown Store",
+      "items": [
+        {
+          "sku": "ELEC-001",
+          "productName": "Laptop Pro 15",
+          "quantity": 1,
+          "price": 85000
+        }
+      ],
+      "totalAmount": 85000,
+      "tax": 15300,
+      "discount": 4250,
+      "grandTotal": 96050,
+      "status": "delivered",
+      "paymentStatus": "paid",
+      "paymentMethod": "card",
+      "orderDate": 1729900800000,
+      "shippingAddress": "123 Main St, Downtown",
+      "notes": "Express delivery requested"
+    },
+    "ord2": {
+      "customerId": "cust2",
+      "customerName": "Bob Smith",
+      "storeId": 2,
+      "storeName": "Uptown Store",
+      "items": [
+        {
+          "sku": "ELEC-003",
+          "productName": "4K Monitor",
+          "quantity": 1,
+          "price": 32000
+        },
+        {
+          "sku": "ELEC-002",
+          "productName": "Wireless Mouse",
+          "quantity": 2,
+          "price": 1200
+        }
+      ],
+      "totalAmount": 34400,
+      "tax": 6192,
+      "discount": 1720,
+      "grandTotal": 38872,
+      "status": "shipped",
+      "paymentStatus": "paid",
+      "paymentMethod": "upi",
+      "orderDate": 1730073600000,
+      "shippingAddress": "456 Oak Ave, Uptown",
+      "notes": ""
+    },
+    "ord3": {
+      "customerId": "cust3",
+      "customerName": "Carol White",
+      "storeId": 3,
+      "storeName": "Suburb Store",
+      "items": [
+        {
+          "sku": "ELEC-004",
+          "productName": "Smartphone X",
+          "quantity": 1,
+          "price": 45000
+        }
+      ],
+      "totalAmount": 45000,
+      "tax": 8100,
+      "discount": 2250,
+      "grandTotal": 50850,
+      "status": "placed",
+      "paymentStatus": "pending",
+      "paymentMethod": "cod",
+      "orderDate": 1730505600000,
+      "shippingAddress": "789 Pine Rd, Suburb",
+      "notes": "Cash on delivery"
+    }
+  },
+  "payments": {
+    "pay1": {
+      "orderId": "ord1",
+      "orderNumber": "ORD-001",
+      "customerId": "cust1",
+      "customerName": "Alice Johnson",
+      "amount": 96050,
+      "method": "card",
+      "provider": "Visa",
+      "status": "completed",
+      "transactionId": "TXN-1730073600000-8642",
+      "processedAt": 1730073600000
+    },
+    "pay2": {
+      "orderId": "ord2",
+      "orderNumber": "ORD-002",
+      "customerId": "cust2",
+      "customerName": "Bob Smith",
+      "amount": 38872,
+      "method": "upi",
+      "provider": "Google Pay",
+      "status": "completed",
+      "transactionId": "TXN-1730160000000-5231",
+      "processedAt": 1730160000000
+    }
+  },
+  "deliveryAgents": {
+    "agent1": {
+      "name": "David Martinez",
+      "phone": "555-0101",
+      "zone": "Downtown",
+      "activeDeliveries": 2,
+      "totalDeliveries": 145
+    },
+    "agent2": {
+      "name": "Emma Wilson",
+      "phone": "555-0102",
+      "zone": "Uptown",
+      "activeDeliveries": 1,
+      "totalDeliveries": 198
+    },
+    "agent3": {
+      "name": "Frank Lee",
+      "phone": "555-0103",
+      "zone": "Suburb",
+      "activeDeliveries": 3,
+      "totalDeliveries": 167
+    },
+    "agent4": {
+      "name": "Grace Chen",
+      "phone": "555-0104",
+      "zone": "Downtown",
+      "activeDeliveries": 0,
+      "totalDeliveries": 89
+    }
+  },
+  "deliveryTasks": {
+    "del1": {
+      "orderId": "ord1",
+      "agentId": "agent1",
+      "agentName": "David Martinez",
+      "customerName": "Alice Johnson",
+      "address": "123 Main St, Downtown",
+      "zone": "Downtown",
+      "status": "delivered",
+      "assignedAt": 1729987200000,
+      "estimatedDelivery": 1730160000000,
+      "deliveredAt": 1730073600000,
+      "priority": "medium"
+    },
+    "del2": {
+      "orderId": "ord2",
+      "agentId": "agent1",
+      "agentName": "David Martinez",
+      "customerName": "Bob Smith",
+      "address": "456 Oak Ave, Uptown",
+      "zone": "Uptown",
+      "status": "in-transit",
+      "assignedAt": 1730246400000,
+      "estimatedDelivery": 1730332800000,
+      "deliveredAt": null,
+      "priority": "high"
+    },
+    "del3": {
+      "orderId": "ord3",
+      "agentId": "agent2",
+      "agentName": "Emma Wilson",
+      "customerName": "Carol White",
+      "address": "789 Pine Rd, Suburb",
+      "zone": "Suburb",
+      "status": "assigned",
+      "assignedAt": 1730332800000,
+      "estimatedDelivery": 1730419200000,
+      "deliveredAt": null,
+      "priority": "medium"
+    }
+  }
+}
