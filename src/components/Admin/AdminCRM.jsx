@@ -1,5 +1,5 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingCart, CreditCard, Store, Menu, X, LogOut } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, CreditCard, Store, Menu, X, LogOut, Users } from 'lucide-react';
 import { useState } from 'react';
 import useAuthStore from '../../store/authStore';
 import AdminDashboard from './AdminDashboard';
@@ -7,6 +7,7 @@ import AdminStores from './AdminStores';
 import AdminOrders from './AdminOrders';
 import AdminInventory from './AdminInventory';
 import AdminPayments from './AdminPayments';
+import AdminCustomers from './AdminCustomers';
 import './AdminCRM.css';
 
 function AdminCRM() {
@@ -20,6 +21,7 @@ function AdminCRM() {
     { path: '/admin/inventory', icon: <Package size={20} />, label: 'Inventory' },
     { path: '/admin/payments', icon: <CreditCard size={20} />, label: 'Payments' },
     { path: '/admin/stores', icon: <Store size={20} />, label: 'Stores' },
+    { path: '/admin/customers', icon: <Users size={20} />, label: 'Customers' },
   ];
 
   const handleLogout = () => {
@@ -92,6 +94,7 @@ function AdminCRM() {
           <Route path="/inventory" element={<AdminInventory />} />
           <Route path="/payments" element={<AdminPayments />} />
           <Route path="/stores" element={<AdminStores />} />
+          <Route path="/customers" element={<AdminCustomers />} />
         </Routes>
       </main>
     </div>

@@ -5,9 +5,11 @@ import useMLStore from '../../store/mlStore';
 import useInventoryStore from '../../store/inventoryStore';
 import useCustomerStore from '../../store/customerStore';
 import useOrderStore from '../../store/orderStore';
+import useAuthStore from '../../store/authStore';
 import './MLInsights.css';
 
 function MLInsights() {
+  const { currentUser } = useAuthStore();
   const [activeTab, setActiveTab] = useState('sales');
   const { 
     generateSalesPredictions, 
@@ -24,7 +26,12 @@ function MLInsights() {
 
   const { inventory } = useInventoryStore();
   const { customers } = useCustomerStore();
-  const { orders } = useOrderStore();
+  const { orders: allOrders } = useOrderStore();
+
+  // Filter orders based on user role
+  const orders = currentUser?.role === 'Customer' 
+    ? allOrders.filter(order => order.customerAccountId === currentUser.id)
+    : allOrders;
 
   // Generate predictions on mount using REAL DATA
   const [salesPredictions] = useState(() => {

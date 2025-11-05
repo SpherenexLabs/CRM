@@ -4,6 +4,7 @@ import useOrderStore from '../../store/orderStore';
 import useCustomerStore from '../../store/customerStore';
 import useInventoryStore from '../../store/inventoryStore';
 import usePaymentStore from '../../store/paymentStore';
+import useAuthStore from '../../store/authStore';
 import { initiateRazorpayPayment } from '../../utils/razorpay';
 
 function CreateOrder({ onSuccess }) {
@@ -11,6 +12,7 @@ function CreateOrder({ onSuccess }) {
   const { customers, registerCustomer } = useCustomerStore();
   const { inventory, stores } = useInventoryStore();
   const { processPayment } = usePaymentStore();
+  const { currentUser } = useAuthStore();
 
   const [orderItems, setOrderItems] = useState([]);
   const [formData, setFormData] = useState({
@@ -89,6 +91,7 @@ function CreateOrder({ onSuccess }) {
 
     const orderData = {
       customerId: formData.customerId, // Keep as string (Firebase ID)
+      customerAccountId: currentUser?.role === 'Customer' ? currentUser.id : null, // Link to customer account
       customerName: customer?.name || 'Unknown',
       storeId: formData.storeId, // Keep as string or number based on store structure
       items: orderItems,

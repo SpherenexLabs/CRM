@@ -104,12 +104,19 @@ function Navigation() {
 }
 
 function App() {
-  const { isAuthenticated, currentUser } = useAuthStore();
+  const { isAuthenticated, currentUser, initializeCustomers } = useAuthStore();
   const initializeInventory = useInventoryStore(state => state.initializeInventory);
   const initializeOrders = useOrderStore(state => state.initializeOrders);
   const initializePayments = usePaymentStore(state => state.initializePayments);
   const initializeDelivery = useDeliveryStore(state => state.initializeDelivery);
-  const initializeCustomers = useCustomerStore(state => state.initializeCustomers);
+  const initializeCustomers2 = useCustomerStore(state => state.initializeCustomers);
+
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Wait for Zustand persist to hydrate
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   // Initialize ALL Firebase listeners when app loads
   useEffect(() => {
@@ -118,12 +125,31 @@ function App() {
       initializeOrders();
       initializePayments();
       initializeDelivery();
-      initializeCustomers();
+      initializeCustomers2();
     }
-  }, [isAuthenticated, initializeInventory, initializeOrders, initializePayments, initializeDelivery, initializeCustomers]);
+    // Initialize customer accounts always (for login)
+    initializeCustomers();
+  }, [isAuthenticated, initializeInventory, initializeOrders, initializePayments, initializeDelivery, initializeCustomers2, initializeCustomers]);
 
   // Check if user is Super Admin
   const isSuperAdmin = currentUser?.role === 'Super Admin';
+
+  // Show loading while hydrating
+  if (!isHydrated) {
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        backgroundColor: '#f3f4f6'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <h2 style={{ color: '#1e293b' }}>Loading...</h2>
+        </div>
+      </div>
+    );
+  }
 
   // Show login if not authenticated
   if (!isAuthenticated) {

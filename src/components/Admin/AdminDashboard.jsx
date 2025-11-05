@@ -62,10 +62,12 @@ function AdminDashboard() {
   // Store-wise revenue data
   const storeRevenueData = stores.map(store => {
     const storeOrders = orders.filter(order => order.storeId === store.id);
-    const revenue = storeOrders.reduce((sum, order) => sum + order.total, 0);
+    const revenue = storeOrders
+      .filter(order => order.paymentStatus === 'paid')
+      .reduce((sum, order) => sum + (order.grandTotal || order.totalAmount || 0), 0);
     return {
       name: store.name,
-      revenue: revenue,
+      revenue: Math.round(revenue),
       orders: storeOrders.length
     };
   });
@@ -77,16 +79,16 @@ function AdminDashboard() {
     return {
       name: store.name,
       products: storeInventory.length,
-      value: totalValue
+      value: Math.round(totalValue)
     };
   });
 
-  // Order status distribution - filter out zero values
+  // Order status distribution - use actual status values
   const orderStatusData = [
-    { name: 'Pending', value: orders.filter(o => o.status === 'Pending').length, color: '#f59e0b' },
-    { name: 'Processing', value: orders.filter(o => o.status === 'Processing').length, color: '#3b82f6' },
-    { name: 'Delivered', value: orders.filter(o => o.status === 'Delivered').length, color: '#10b981' },
-    { name: 'Cancelled', value: orders.filter(o => o.status === 'Cancelled').length, color: '#ef4444' }
+    { name: 'Placed', value: orders.filter(o => o.status === 'placed').length, color: '#f59e0b' },
+    { name: 'Shipped', value: orders.filter(o => o.status === 'shipped').length, color: '#3b82f6' },
+    { name: 'Delivered', value: orders.filter(o => o.status === 'delivered').length, color: '#10b981' },
+    { name: 'Cancelled', value: orders.filter(o => o.status === 'cancelled').length, color: '#ef4444' }
   ].filter(item => item.value > 0); // Only show statuses with data
 
   // Recent orders (last 5)
@@ -204,15 +206,16 @@ function AdminDashboard() {
                 <tbody>
                   {recentOrders.map(order => {
                     const store = stores.find(s => s.id === order.storeId);
+                    const orderAmount = order.grandTotal || order.totalAmount || 0;
                     return (
                       <tr key={order.id}>
                         <td>#{order.id?.substring(0, 8)}</td>
                         <td>{order.customerName}</td>
                         <td>{store?.name || 'N/A'}</td>
-                        <td>₹{order.total?.toLocaleString()}</td>
+                        <td>₹{orderAmount.toLocaleString()}</td>
                         <td>
                           <span className={`status-badge ${order.status?.toLowerCase()}`}>
-                            {order.status}
+                            {order.status?.toUpperCase()}
                           </span>
                         </td>
                       </tr>
@@ -237,7 +240,9 @@ function AdminDashboard() {
           {stores.map(store => {
             const storeInventory = inventory.filter(item => item.storeId === store.id);
             const storeOrders = orders.filter(order => order.storeId === store.id);
-            const storeRevenue = storeOrders.reduce((sum, order) => sum + order.total, 0);
+            const storeRevenue = storeOrders
+              .filter(order => order.paymentStatus === 'paid')
+              .reduce((sum, order) => sum + (order.grandTotal || order.totalAmount || 0), 0);
 
             return (
               <div key={store.id} className="store-overview-card">

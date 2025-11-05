@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import usePaymentStore from '../../store/paymentStore';
 import useInventoryStore from '../../store/inventoryStore';
+import useOrderStore from '../../store/orderStore';
 import { CreditCard, Search, DollarSign, CheckCircle, XCircle } from 'lucide-react';
 import './AdminPayments.css';
 
 function AdminPayments() {
   const { payments } = usePaymentStore();
   const { stores } = useInventoryStore();
+  const { orders } = useOrderStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStore, setFilterStore] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -16,21 +18,32 @@ function AdminPayments() {
       payment.orderId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       payment.customerName?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStore = filterStore === 'all' || payment.storeId === filterStore;
-    const matchesStatus = filterStatus === 'all' || payment.status === filterStatus;
+    // Get storeId from order
+    const order = orders.find(o => o.id === payment.orderId);
+    const paymentStoreId = order?.storeId;
+    
+    const matchesStore = filterStore === 'all' || paymentStoreId === filterStore;
+    
+    // Map status values
+    const paymentStatus = payment.status === 'completed' ? 'success' : payment.status;
+    const matchesStatus = filterStatus === 'all' || paymentStatus === filterStatus;
 
     return matchesSearch && matchesStore && matchesStatus;
   });
 
-  const getStoreName = (storeId) => {
-    const store = stores.find(s => s.id === storeId);
-    return store?.name || 'N/A';
+  const getStoreName = (orderId) => {
+    const order = orders.find(o => o.id === orderId);
+    if (order) {
+      const store = stores.find(s => s.id === order.storeId);
+      return store?.name || 'N/A';
+    }
+    return 'N/A';
   };
 
-  const totalAmount = filteredPayments.reduce((sum, p) => sum + p.amount, 0);
-  const successfulPayments = filteredPayments.filter(p => p.status === 'Success').length;
-  const pendingPayments = filteredPayments.filter(p => p.status === 'Pending').length;
-  const failedPayments = filteredPayments.filter(p => p.status === 'Failed').length;
+  const totalAmount = filteredPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+  const successfulPayments = filteredPayments.filter(p => p.status === 'completed' || p.status === 'success').length;
+  const pendingPayments = filteredPayments.filter(p => p.status === 'pending').length;
+  const failedPayments = filteredPayments.filter(p => p.status === 'failed').length;
 
   return (
     <div className="admin-payments-view">
@@ -67,9 +80,9 @@ function AdminPayments() {
           className="filter-select"
         >
           <option value="all">All Status</option>
-          <option value="Success">Success</option>
-          <option value="Pending">Pending</option>
-          <option value="Failed">Failed</option>
+          <option value="success">Success</option>
+          <option value="pending">Pending</option>
+          <option value="failed">Failed</option>
         </select>
       </div>
 
@@ -119,24 +132,30 @@ function AdminPayments() {
             </tr>
           </thead>
           <tbody>
-            {filteredPayments.map(payment => (
-              <tr key={payment.id}>
-                <td className="transaction-id">{payment.transactionId || 'N/A'}</td>
-                <td className="order-id">#{payment.orderId?.substring(0, 8)}</td>
-                <td>{getStoreName(payment.storeId)}</td>
-                <td>{payment.customerName}</td>
-                <td>{new Date(payment.paymentDate).toLocaleDateString()}</td>
-                <td>
-                  <span className="payment-method">{payment.paymentMethod}</span>
-                </td>
-                <td className="amount">₹{payment.amount?.toLocaleString()}</td>
-                <td>
-                  <span className={`status-badge ${payment.status?.toLowerCase()}`}>
-                    {payment.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
+            {filteredPayments.map(payment => {
+              const paymentDate = payment.processedAt || payment.paymentDate || payment.createdAt;
+              const paymentMethod = payment.method || payment.paymentMethod || 'N/A';
+              const displayStatus = payment.status === 'completed' ? 'SUCCESS' : payment.status?.toUpperCase();
+              
+              return (
+                <tr key={payment.id}>
+                  <td className="transaction-id">{payment.transactionId || payment.id || 'N/A'}</td>
+                  <td className="order-id">#{payment.orderId?.substring(0, 8)}</td>
+                  <td>{getStoreName(payment.orderId)}</td>
+                  <td>{payment.customerName}</td>
+                  <td>{paymentDate ? new Date(paymentDate).toLocaleDateString() : 'Invalid Date'}</td>
+                  <td>
+                    <span className="payment-method">{paymentMethod}</span>
+                  </td>
+                  <td className="amount">₹{(payment.amount || 0).toLocaleString()}</td>
+                  <td>
+                    <span className={`status-badge ${payment.status === 'completed' ? 'success' : payment.status?.toLowerCase()}`}>
+                      {displayStatus}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 

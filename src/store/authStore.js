@@ -1,11 +1,14 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { ref, onValue, push, remove, set as firebaseSet } from 'firebase/database';
+import { db } from '../firebase/config';
 
 const useAuthStore = create(
   persist(
     (set, get) => ({
       currentUser: null,
       isAuthenticated: false,
+      customers: [], // Customer accounts from Firebase
 
       users: [
         {
@@ -39,14 +42,66 @@ const useAuthStore = create(
         }
       ],
 
-      // Login
-      login: (username, password) => {
-        const user = get().users.find(
-          u => u.username === username && u.password === password
+      // Initialize customer accounts listener
+      initializeCustomers: () => {
+        const customersRef = ref(db, 'customerAccounts');
+        
+        onValue(customersRef, (snapshot) => {
+          const data = snapshot.val();
+          if (data) {
+            const customersArray = Object.keys(data).map(key => ({
+              id: key,
+              ...data[key]
+            }));
+            set({ customers: customersArray });
+          } else {
+            set({ customers: [] });
+          }
+        });
+      },
+
+      // Register new customer
+      registerCustomer: async (customerData) => {
+        const { email, password, name, phone } = customerData;
+        
+        // Check if email already exists
+        const existingCustomer = get().customers.find(c => c.email === email);
+        if (existingCustomer) {
+          return { success: false, message: 'Email already registered' };
+        }
+
+        try {
+          const customersRef = ref(db, 'customerAccounts');
+          const newCustomerRef = push(customersRef);
+          
+          const newCustomer = {
+            email,
+            password, // In production, hash this
+            name,
+            phone: phone || '',
+            role: 'Customer',
+            createdAt: Date.now(),
+            isActive: true
+          };
+
+          await firebaseSet(newCustomerRef, newCustomer);
+          
+          return { success: true, message: 'Registration successful! Please login.' };
+        } catch (error) {
+          console.error('Registration error:', error);
+          return { success: false, message: 'Registration failed. Please try again.' };
+        }
+      },
+
+      // Login (supports both staff and customers)
+      login: (emailOrUsername, password) => {
+        // Check staff users first
+        const staffUser = get().users.find(
+          u => u.username === emailOrUsername && u.password === password
         );
 
-        if (user) {
-          const { password, ...userWithoutPassword } = user;
+        if (staffUser) {
+          const { password, ...userWithoutPassword } = staffUser;
           set({
             currentUser: userWithoutPassword,
             isAuthenticated: true
@@ -54,7 +109,33 @@ const useAuthStore = create(
           return { success: true, user: userWithoutPassword };
         }
 
+        // Check customer accounts
+        const customer = get().customers.find(
+          c => c.email === emailOrUsername && c.password === password && c.isActive
+        );
+
+        if (customer) {
+          const { password, ...customerWithoutPassword } = customer;
+          set({
+            currentUser: customerWithoutPassword,
+            isAuthenticated: true
+          });
+          return { success: true, user: customerWithoutPassword };
+        }
+
         return { success: false, message: 'Invalid credentials' };
+      },
+
+      // Delete customer account (Admin only)
+      deleteCustomer: async (customerId) => {
+        try {
+          const customerRef = ref(db, `customerAccounts/${customerId}`);
+          await remove(customerRef);
+          return { success: true, message: 'Customer account deleted successfully' };
+        } catch (error) {
+          console.error('Delete customer error:', error);
+          return { success: false, message: 'Failed to delete customer account' };
+        }
       },
 
       // Logout
@@ -124,7 +205,11 @@ const useAuthStore = create(
       }
     }),
     {
-      name: 'auth-storage'
+      name: 'auth-storage',
+      partialize: (state) => ({
+        currentUser: state.currentUser,
+        isAuthenticated: state.isAuthenticated
+      })
     }
   )
 );

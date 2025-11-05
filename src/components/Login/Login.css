@@ -105,6 +105,35 @@
   box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
 }
 
+.register-link {
+  padding: 1.5rem 2rem;
+  text-align: center;
+  border-top: 1px solid #e5e7eb;
+}
+
+.register-link p {
+  margin: 0 0 0.75rem 0;
+  color: #666;
+  font-size: 0.9375rem;
+}
+
+.btn-register-link {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-register-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
 .demo-credentials {
   background: #f9fafb;
   padding: 1.5rem 2rem;

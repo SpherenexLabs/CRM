@@ -4,45 +4,68 @@ import useInventoryStore from '../../store/inventoryStore';
 import useOrderStore from '../../store/orderStore';
 import useCustomerStore from '../../store/customerStore';
 import useDeliveryStore from '../../store/deliveryStore';
+import useAuthStore from '../../store/authStore';
 import './Dashboard.css';
 
 function Dashboard() {
+  const { currentUser } = useAuthStore();
   const { inventory, getTotalInventoryValue, getStockAlerts } = useInventoryStore();
-  const { orders, getTotalRevenue } = useOrderStore();
+  const { orders: allOrders, getTotalRevenue } = useOrderStore();
   const { customers, getCustomerAnalytics } = useCustomerStore();
   const { deliveryTasks } = useDeliveryStore();
 
+  // Filter orders based on user role
+  const orders = currentUser?.role === 'Customer' 
+    ? allOrders.filter(order => order.customerAccountId === currentUser.id)
+    : allOrders;
+
+  // Calculate totals based on filtered orders
+  const totalRevenue = orders.reduce((sum, order) => {
+    if (order.paymentStatus === 'paid') {
+      return sum + (order.grandTotal || 0);
+    }
+    return sum;
+  }, 0);
+
   const totalInventoryValue = getTotalInventoryValue();
-  const totalRevenue = getTotalRevenue();
   const stockAlerts = getStockAlerts();
   const customerAnalytics = getCustomerAnalytics();
 
+  // Filter delivery tasks for customers
+  const filteredDeliveryTasks = currentUser?.role === 'Customer'
+    ? deliveryTasks.filter(task => {
+        const order = allOrders.find(o => o.id === task.orderId);
+        return order?.customerAccountId === currentUser.id;
+      })
+    : deliveryTasks;
+
+  // Stats - same for everyone but with filtered data for customers
   const stats = [
     {
-      title: 'Total Revenue',
+      title: currentUser?.role === 'Customer' ? 'Total Spent' : 'Total Revenue',
       value: `₹${totalRevenue.toLocaleString()}`,
-      change: '+12.5%',
+      change: currentUser?.role === 'Customer' ? '' : '+12.5%',
       icon: <IndianRupee className="stat-icon" />,
       color: 'green'
     },
     {
       title: 'Total Orders',
       value: orders.length,
-      change: '+8.2%',
+      change: currentUser?.role === 'Customer' ? '' : '+8.2%',
       icon: <ShoppingCart className="stat-icon" />,
       color: 'blue'
     },
     {
-      title: 'Total Customers',
-      value: customers.length,
-      change: '+5.7%',
+      title: currentUser?.role === 'Customer' ? 'Customer Status' : 'Total Customers',
+      value: currentUser?.role === 'Customer' ? 'Active' : customers.length,
+      change: currentUser?.role === 'Customer' ? '' : '+5.7%',
       icon: <Users className="stat-icon" />,
       color: 'purple'
     },
     {
       title: 'Inventory Value',
       value: `₹${totalInventoryValue.toLocaleString()}`,
-      change: '+3.1%',
+      change: currentUser?.role === 'Customer' ? '' : '+3.1%',
       icon: <Package className="stat-icon" />,
       color: 'orange'
     }
@@ -108,7 +131,7 @@ function Dashboard() {
               <div>
                 <p className="stat-title">{stat.title}</p>
                 <h2 className="stat-value">{stat.value}</h2>
-                <span className="stat-change">{stat.change} from last month</span>
+                {stat.change && <span className="stat-change">{stat.change} from last month</span>}
               </div>
               {stat.icon}
             </div>
@@ -118,7 +141,7 @@ function Dashboard() {
 
       <div className="dashboard-grid">
         <div className="dashboard-card chart-card">
-          <h3>Revenue Trend (Last 6 Months)</h3>
+          <h3>{currentUser?.role === 'Customer' ? 'My Spending Trend (Last 6 Months)' : 'Revenue Trend (Last 6 Months)'}</h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={revenueData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -133,7 +156,7 @@ function Dashboard() {
                 tickFormatter={(value) => `₹${value.toLocaleString()}`}
               />
               <Tooltip 
-                formatter={(value) => [`₹${value.toLocaleString()}`, 'Revenue']}
+                formatter={(value) => [`₹${value.toLocaleString()}`, currentUser?.role === 'Customer' ? 'Spent' : 'Revenue']}
                 contentStyle={{ 
                   backgroundColor: '#fff', 
                   border: '1px solid #e5e7eb',
@@ -149,7 +172,7 @@ function Dashboard() {
                 strokeWidth={3}
                 dot={{ fill: '#3b82f6', r: 5 }}
                 activeDot={{ r: 7 }}
-                name="Revenue"
+                name={currentUser?.role === 'Customer' ? 'Spent' : 'Revenue'}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -179,22 +202,26 @@ function Dashboard() {
         </div>
 
         <div className="dashboard-card">
-          <h3>Recent Orders</h3>
+          <h3>{currentUser?.role === 'Customer' ? 'My Recent Orders' : 'Recent Orders'}</h3>
           <div className="recent-list">
-            {recentOrders.map(order => (
-              <div key={order.id} className="recent-item">
-                <div>
-                  <p className="item-title">Order #{order.id}</p>
-                  <p className="item-subtitle">{order.customerName}</p>
+            {recentOrders.length === 0 ? (
+              <p className="empty-state">No orders yet</p>
+            ) : (
+              recentOrders.map(order => (
+                <div key={order.id} className="recent-item">
+                  <div>
+                    <p className="item-title">Order #{order.id}</p>
+                    {currentUser?.role !== 'Customer' && <p className="item-subtitle">{order.customerName}</p>}
+                  </div>
+                  <div className="item-right">
+                    <p>₹{order.grandTotal?.toFixed(2) || '0.00'}</p>
+                    <span className={`status-badge status-${order.status === 'delivered' ? 'success' : 'warning'}`}>
+                      {order.status}
+                    </span>
+                  </div>
                 </div>
-                <div className="item-right">
-                  <p>₹{order.grandTotal.toFixed(2)}</p>
-                  <span className={`status-badge status-${order.status === 'delivered' ? 'success' : 'warning'}`}>
-                    {order.status}
-                  </span>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
@@ -220,14 +247,14 @@ function Dashboard() {
         </div>
 
         <div className="dashboard-card">
-          <h3>Active Deliveries</h3>
+          <h3>{currentUser?.role === 'Customer' ? 'My Deliveries' : 'Active Deliveries'}</h3>
           <div className="delivery-stats">
             <div className="delivery-stat">
               <div className="delivery-icon">
                 <Truck size={24} />
               </div>
               <div>
-                <p className="stat-number">{deliveryTasks.filter(t => t.status === 'in-transit').length}</p>
+                <p className="stat-number">{filteredDeliveryTasks.filter(t => t.status === 'in-transit').length}</p>
                 <p className="stat-label">In Transit</p>
               </div>
             </div>
@@ -236,7 +263,7 @@ function Dashboard() {
                 <Package size={24} />
               </div>
               <div>
-                <p className="stat-number">{deliveryTasks.filter(t => t.status === 'assigned').length}</p>
+                <p className="stat-number">{filteredDeliveryTasks.filter(t => t.status === 'assigned').length}</p>
                 <p className="stat-label">Assigned</p>
               </div>
             </div>

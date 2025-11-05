@@ -100,6 +100,7 @@ function StoreInventoryView({ store, inventory, onBack }) {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredInventory = inventory.filter(item =>
+    item.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.sku?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -140,7 +141,7 @@ function StoreInventoryView({ store, inventory, onBack }) {
           <div>
             <span className="summary-label">Total Stock</span>
             <span className="summary-value">
-              {inventory.reduce((sum, item) => sum + item.stock, 0)}
+              {inventory.reduce((sum, item) => sum + (item.quantity || item.stock || 0), 0)}
             </span>
           </div>
         </div>
@@ -149,7 +150,11 @@ function StoreInventoryView({ store, inventory, onBack }) {
           <div>
             <span className="summary-label">Total Value</span>
             <span className="summary-value">
-              ₹{inventory.reduce((sum, item) => sum + (item.price * item.stock), 0).toLocaleString()}
+              ₹{inventory.reduce((sum, item) => {
+                const stock = item.quantity || item.stock || 0;
+                const price = item.price || 0;
+                return sum + (price * stock);
+              }, 0).toLocaleString()}
             </span>
           </div>
         </div>
@@ -169,25 +174,32 @@ function StoreInventoryView({ store, inventory, onBack }) {
             </tr>
           </thead>
           <tbody>
-            {filteredInventory.map(item => (
-              <tr key={item.id}>
-                <td className="sku-cell">{item.sku}</td>
-                <td className="name-cell">{item.name}</td>
-                <td>{item.category}</td>
-                <td className="stock-cell">
-                  <span className={`stock-badge ${item.stock < 10 ? 'low' : item.stock < 50 ? 'medium' : 'high'}`}>
-                    {item.stock}
-                  </span>
-                </td>
-                <td>₹{item.price?.toLocaleString()}</td>
-                <td>₹{(item.price * item.stock)?.toLocaleString()}</td>
-                <td>
-                  <span className={`status-badge ${item.stock < 10 ? 'critical' : item.stock < 50 ? 'warning' : 'good'}`}>
-                    {item.stock < 10 ? 'Low Stock' : item.stock < 50 ? 'Normal' : 'Good'}
-                  </span>
-                </td>
-              </tr>
-            ))}
+            {filteredInventory.map(item => {
+              const itemStock = item.quantity || item.stock || 0;
+              const itemPrice = item.price || 0;
+              const itemName = item.productName || item.name || 'N/A';
+              const minStock = item.minStock || item.minThreshold || 10;
+              
+              return (
+                <tr key={item.id}>
+                  <td className="sku-cell">{item.sku}</td>
+                  <td className="name-cell">{itemName}</td>
+                  <td>{item.category}</td>
+                  <td className="stock-cell">
+                    <span className={`stock-badge ${itemStock < minStock ? 'low' : itemStock < 50 ? 'medium' : 'high'}`}>
+                      {itemStock}
+                    </span>
+                  </td>
+                  <td>₹{itemPrice.toLocaleString()}</td>
+                  <td>₹{(itemPrice * itemStock).toLocaleString()}</td>
+                  <td>
+                    <span className={`status-badge ${itemStock < minStock ? 'critical' : itemStock < 50 ? 'warning' : 'good'}`}>
+                      {itemStock < minStock ? 'Low Stock' : itemStock < 50 ? 'Normal' : 'Good'}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 

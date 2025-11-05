@@ -2,19 +2,77 @@
 import { Users, Star, TrendingUp, Award, ThumbsUp } from 'lucide-react';
 import { format } from 'date-fns';
 import useCustomerStore from '../../store/customerStore';
+import useOrderStore from '../../store/orderStore';
+import useAuthStore from '../../store/authStore';
 import './CRM.css';
 
 function CRM() {
-  const { customers, getCustomerAnalytics, getRecommendations, getChurnRisk, addFeedback } = useCustomerStore();
+  const { currentUser } = useAuthStore();
+  const { customers: allCustomers, getCustomerAnalytics, getRecommendations, getChurnRisk, addFeedback } = useCustomerStore();
+  const { orders } = useOrderStore();
   const [activeTab, setActiveTab] = useState('customers');
   const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const analytics = getCustomerAnalytics();
+
+  // Filter customers - if customer user, find their CRM profile
+  // For customer users, show only customers who have placed orders matching their customerAccountId
+  const customers = currentUser?.role === 'Customer'
+    ? allCustomers.filter(customer => {
+        // Check if this CRM customer has orders from this account
+        return orders.some(order => 
+          order.customerId === customer.id && 
+          order.customerAccountId === currentUser.id
+        );
+      })
+    : allCustomers;
+
+  // Calculate analytics based on filtered customers
+  const analytics = currentUser?.role === 'Customer'
+    ? customers.length > 0
+      ? {
+          totalCustomers: customers.length,
+          averageSpent: customers.reduce((sum, c) => sum + (c.totalSpent || 0), 0) / customers.length,
+          totalRevenue: customers.reduce((sum, c) => sum + (c.totalSpent || 0), 0),
+          avgFeedbackRating: customers.reduce((sum, c) => {
+            const feedbacks = c.feedback || [];
+            const avgRating = feedbacks.length > 0 
+              ? feedbacks.reduce((s, f) => s + (f.rating || 0), 0) / feedbacks.length 
+              : 0;
+            return sum + avgRating;
+          }, 0) / customers.length
+        }
+      : {
+          totalCustomers: 0,
+          averageSpent: 0,
+          totalRevenue: 0,
+          avgFeedbackRating: 0
+        }
+    : getCustomerAnalytics();
 
   const stats = [
-    { title: 'Total Customers', value: analytics.totalCustomers, icon: <Users />, color: 'blue' },
-    { title: 'Avg Spent', value: `₹${analytics.averageSpent.toFixed(2)}`, icon: <TrendingUp />, color: 'green' },
-    { title: 'Total Revenue', value: `₹${analytics.totalRevenue.toFixed(2)}`, icon: <Award />, color: 'purple' },
-    { title: 'Avg Rating', value: analytics.avgFeedbackRating, icon: <Star />, color: 'orange' },
+    { 
+      title: currentUser?.role === 'Customer' ? 'My Profile' : 'Total Customers', 
+      value: currentUser?.role === 'Customer' ? (customers.length > 0 ? '1' : '0') : analytics.totalCustomers, 
+      icon: <Users />, 
+      color: 'blue' 
+    },
+    { 
+      title: currentUser?.role === 'Customer' ? 'Total Spent' : 'Avg Spent', 
+      value: `₹${(currentUser?.role === 'Customer' ? analytics.totalRevenue : analytics.averageSpent || 0).toFixed(2)}`, 
+      icon: <TrendingUp />, 
+      color: 'green' 
+    },
+    { 
+      title: currentUser?.role === 'Customer' ? 'My Revenue' : 'Total Revenue', 
+      value: `₹${(analytics.totalRevenue || 0).toFixed(2)}`, 
+      icon: <Award />, 
+      color: 'purple' 
+    },
+    { 
+      title: 'Avg Rating', 
+      value: (analytics.avgFeedbackRating || 0).toFixed(1), 
+      icon: <Star />, 
+      color: 'orange' 
+    },
   ];
 
   return (
@@ -36,7 +94,9 @@ function CRM() {
       </div>
 
       <div className="tabs">
-        <button className={`tab ${activeTab === 'customers' ? 'active' : ''}`} onClick={() => setActiveTab('customers')}>All Customers</button>
+        <button className={`tab ${activeTab === 'customers' ? 'active' : ''}`} onClick={() => setActiveTab('customers')}>
+          {currentUser?.role === 'Customer' ? 'My Profile' : 'All Customers'}
+        </button>
         <button className={`tab ${activeTab === 'loyalty' ? 'active' : ''}`} onClick={() => setActiveTab('loyalty')}>Loyalty Program</button>
         <button className={`tab ${activeTab === 'feedback' ? 'active' : ''}`} onClick={() => setActiveTab('feedback')}>Feedback</button>
         <button className={`tab ${activeTab === 'churn' ? 'active' : ''}`} onClick={() => setActiveTab('churn')}>Churn Analysis</button>
@@ -44,7 +104,14 @@ function CRM() {
 
       {activeTab === 'customers' && (
         <div className="table-container">
-          <table className="crm-table">
+          {customers.length === 0 && currentUser?.role === 'Customer' ? (
+            <div className="empty-state" style={{padding: '3rem', textAlign: 'center'}}>
+              <p style={{fontSize: '1.1rem', color: '#666'}}>
+                No customer profile found. Your profile will be created automatically when you place your first order.
+              </p>
+            </div>
+          ) : (
+            <table className="crm-table">
             <thead>
               <tr>
                 <th>Name</th>
@@ -72,6 +139,7 @@ function CRM() {
               ))}
             </tbody>
           </table>
+          )}
         </div>
       )}
 

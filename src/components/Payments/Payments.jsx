@@ -2,12 +2,34 @@
 import { CreditCard, IndianRupee, CheckCircle, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
 import usePaymentStore from '../../store/paymentStore';
+import useOrderStore from '../../store/orderStore';
+import useAuthStore from '../../store/authStore';
 import { initiateRazorpayPayment } from '../../utils/razorpay';
 import './Payments.css';
 
 function Payments() {
-  const { payments, processPayment, getPaymentStats, paymentMethods, paymentProviders } = usePaymentStore();
-  const stats = getPaymentStats();
+  const { payments: allPayments, processPayment, getPaymentStats, paymentMethods, paymentProviders } = usePaymentStore();
+  const { orders } = useOrderStore();
+  const { currentUser } = useAuthStore();
+
+  // Filter payments based on user role
+  const payments = currentUser?.role === 'Customer' 
+    ? allPayments.filter(payment => {
+        const order = orders.find(o => o.id === payment.orderId);
+        return order?.customerAccountId === currentUser.id;
+      })
+    : allPayments;
+
+  // Calculate stats from filtered payments
+  const stats = {
+    totalTransactions: payments.length,
+    totalAmount: payments.reduce((sum, p) => sum + (p.amount || 0), 0),
+    successfulTransactions: payments.filter(p => p.status === 'Success' || p.status === 'completed').length,
+    successRate: payments.length > 0 
+      ? ((payments.filter(p => p.status === 'Success' || p.status === 'completed').length / payments.length) * 100).toFixed(1)
+      : 0
+  };
+
   const [showProcessForm, setShowProcessForm] = useState(false);
   const [formData, setFormData] = useState({
     orderId: '',

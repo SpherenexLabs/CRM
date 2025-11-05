@@ -1,6 +1,7 @@
 ﻿import { useState } from 'react';
 import { ShoppingCart, Package, Truck, CheckCircle, XCircle } from 'lucide-react';
 import useOrderStore from '../../store/orderStore';
+import useAuthStore from '../../store/authStore';
 import OrdersList from './OrdersList';
 import CreateOrder from './CreateOrder';
 import OrderDetails from './OrderDetails';
@@ -9,7 +10,13 @@ import './Orders.css';
 function Orders() {
   const [activeTab, setActiveTab] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const { orders, getTotalRevenue } = useOrderStore();
+  const { orders: allOrders, getTotalRevenue } = useOrderStore();
+  const { currentUser } = useAuthStore();
+
+  // Filter orders based on user role
+  const orders = currentUser?.role === 'Customer' 
+    ? allOrders.filter(order => order.customerAccountId === currentUser.id)
+    : allOrders;
 
   const ordersByStatus = {
     placed: orders.filter(o => o.status === 'placed'),
@@ -18,7 +25,13 @@ function Orders() {
     cancelled: orders.filter(o => o.status === 'cancelled'),
   };
 
-  const totalRevenue = getTotalRevenue();
+  // Calculate revenue from filtered orders
+  const totalRevenue = orders.reduce((sum, order) => {
+    if (order.paymentStatus === 'paid') {
+      return sum + (order.grandTotal || 0);
+    }
+    return sum;
+  }, 0);
 
   const stats = [
     {

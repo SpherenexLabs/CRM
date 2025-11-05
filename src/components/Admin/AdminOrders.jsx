@@ -62,10 +62,10 @@ function AdminOrders() {
           className="filter-select"
         >
           <option value="all">All Status</option>
-          <option value="Pending">Pending</option>
-          <option value="Processing">Processing</option>
-          <option value="Delivered">Delivered</option>
-          <option value="Cancelled">Cancelled</option>
+          <option value="placed">Placed</option>
+          <option value="shipped">Shipped</option>
+          <option value="delivered">Delivered</option>
+          <option value="cancelled">Cancelled</option>
         </select>
       </div>
 
@@ -74,28 +74,31 @@ function AdminOrders() {
           <ShoppingCart size={24} />
           <div>
             <span className="stat-label">Total Orders</span>
-            <span className="stat-value">{orders.length}</span>
+            <span className="stat-value">{filteredOrders.length}</span>
           </div>
         </div>
         <div className="stat-box">
           <DollarSign size={24} />
           <div>
             <span className="stat-label">Total Revenue</span>
-            <span className="stat-value">₹{orders.reduce((sum, o) => sum + o.total, 0).toLocaleString()}</span>
+            <span className="stat-value">₹{filteredOrders
+              .filter(o => o.paymentStatus === 'paid')
+              .reduce((sum, o) => sum + (o.grandTotal || o.totalAmount || 0), 0)
+              .toLocaleString()}</span>
           </div>
         </div>
         <div className="stat-box pending">
           <Package size={24} />
           <div>
             <span className="stat-label">Pending</span>
-            <span className="stat-value">{orders.filter(o => o.status === 'Pending').length}</span>
+            <span className="stat-value">{orders.filter(o => o.status === 'placed').length}</span>
           </div>
         </div>
         <div className="stat-box success">
           <Package size={24} />
           <div>
             <span className="stat-label">Delivered</span>
-            <span className="stat-value">{orders.filter(o => o.status === 'Delivered').length}</span>
+            <span className="stat-value">{orders.filter(o => o.status === 'delivered').length}</span>
           </div>
         </div>
       </div>
@@ -128,10 +131,10 @@ function AdminOrders() {
                 </td>
                 <td>{new Date(order.createdAt).toLocaleDateString()}</td>
                 <td>{order.items?.length || 0} items</td>
-                <td className="amount">₹{order.total?.toLocaleString()}</td>
+                <td className="amount">₹{(order.grandTotal || order.totalAmount || 0).toLocaleString()}</td>
                 <td>
                   <span className={`status-badge ${order.status?.toLowerCase()}`}>
-                    {order.status}
+                    {order.status?.toUpperCase()}
                   </span>
                 </td>
               </tr>

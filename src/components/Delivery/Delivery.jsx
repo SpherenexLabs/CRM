@@ -2,11 +2,24 @@
 import { Truck, User, MapPin, BarChart3 } from 'lucide-react';
 import { format } from 'date-fns';
 import useDeliveryStore from '../../store/deliveryStore';
+import useOrderStore from '../../store/orderStore';
+import useAuthStore from '../../store/authStore';
 import './Delivery.css';
 
 function Delivery() {
-  const { deliveryAgents, deliveryTasks, assignDelivery, updateDeliveryStatus, getDeliveryAnalytics } = useDeliveryStore();
+  const { currentUser } = useAuthStore();
+  const { deliveryAgents, deliveryTasks: allDeliveryTasks, assignDelivery, updateDeliveryStatus, getDeliveryAnalytics } = useDeliveryStore();
+  const { orders } = useOrderStore();
   const [activeTab, setActiveTab] = useState('tasks');
+
+  // Filter delivery tasks for customer users
+  const deliveryTasks = currentUser?.role === 'Customer'
+    ? allDeliveryTasks.filter(task => {
+        const order = orders.find(o => o.id === task.orderId);
+        return order?.customerAccountId === currentUser.id;
+      })
+    : allDeliveryTasks;
+
   const analytics = getDeliveryAnalytics();
 
   const formatDate = (date) => {
@@ -27,11 +40,28 @@ function Delivery() {
     }
   };
 
+  // Filter delivery agents for customers (show only agents handling their deliveries)
+  const filteredAgents = currentUser?.role === 'Customer'
+    ? deliveryAgents.filter(agent => 
+        deliveryTasks.some(task => task.agentId === agent.id)
+      )
+    : deliveryAgents;
+
   const stats = [
-    { title: 'Total Deliveries', value: deliveryTasks.length, icon: <Truck />, color: 'blue' },
+    { 
+      title: currentUser?.role === 'Customer' ? 'My Deliveries' : 'Total Deliveries', 
+      value: deliveryTasks.length, 
+      icon: <Truck />, 
+      color: 'blue' 
+    },
     { title: 'In Transit', value: deliveryTasks.filter(t => t.status === 'in-transit').length, icon: <MapPin />, color: 'orange' },
     { title: 'Delivered', value: deliveryTasks.filter(t => t.status === 'delivered').length, icon: <BarChart3 />, color: 'green' },
-    { title: 'Active Agents', value: deliveryAgents.filter(a => a.activeDeliveries > 0).length, icon: <User />, color: 'purple' },
+    { 
+      title: currentUser?.role === 'Customer' ? 'My Agents' : 'Active Agents', 
+      value: filteredAgents.filter(a => a.activeDeliveries > 0).length, 
+      icon: <User />, 
+      color: 'purple' 
+    },
   ];
 
   return (
@@ -105,7 +135,7 @@ function Delivery() {
 
       {activeTab === 'agents' && (
         <div className="agents-grid">
-          {deliveryAgents.map(agent => (
+          {filteredAgents.map(agent => (
             <div key={agent.id} className="agent-card">
               <h3>{agent.name}</h3>
               <div className="agent-info">

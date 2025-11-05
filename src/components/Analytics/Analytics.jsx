@@ -9,7 +9,7 @@ import useAuthStore from '../../store/authStore';
 import './Analytics.css';
 
 function Analytics() {
-  const { orders, getTotalRevenue } = useOrderStore();
+  const { orders: allOrders, getTotalRevenue } = useOrderStore();
   const { inventory, stores } = useInventoryStore();
   const { generateSalesPredictions, predictTopSellers } = useMLStore();
   const { currentUser, isSuperAdmin, filterByAccess } = useAuthStore();
@@ -22,10 +22,15 @@ function Analytics() {
     endDate: format(endOfMonth(new Date()), 'yyyy-MM-dd')
   });
 
-  // Filter orders based on user role and selected filters
+  // Filter orders based on user role first
+  const userOrders = currentUser?.role === 'Customer'
+    ? allOrders.filter(order => order.customerAccountId === currentUser.id)
+    : allOrders;
+
+  // Then apply role-based access filtering
   const accessibleOrders = isSuperAdmin() 
-    ? orders 
-    : filterByAccess(orders, 'orders');
+    ? userOrders 
+    : filterByAccess(userOrders, 'orders');
 
   const filteredOrders = accessibleOrders.filter(order => {
     const orderDate = new Date(order.createdAt);

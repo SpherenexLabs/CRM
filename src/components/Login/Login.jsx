@@ -1,11 +1,13 @@
 ﻿import { useState } from 'react';
-import { LogIn, Lock, User } from 'lucide-react';
+import { LogIn, Lock, User, Mail } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
+import CustomerRegister from './CustomerRegister';
 import './Login.css';
 
 function Login() {
+  const [showRegister, setShowRegister] = useState(false);
   const [credentials, setCredentials] = useState({
-    username: '',
+    emailOrUsername: '',
     password: ''
   });
   const [error, setError] = useState('');
@@ -15,7 +17,7 @@ function Login() {
     e.preventDefault();
     setError('');
 
-    const result = login(credentials.username, credentials.password);
+    const result = login(credentials.emailOrUsername, credentials.password);
     
     if (!result.success) {
       setError(result.message);
@@ -25,11 +27,15 @@ function Login() {
 
   const quickLogin = (role) => {
     const creds = role === 'admin' 
-      ? { username: 'admin', password: 'admin123' }
-      : { username: 'manager1', password: 'manager123' };
+      ? { emailOrUsername: 'admin', password: 'admin123' }
+      : { emailOrUsername: 'manager1', password: 'manager123' };
     
     setCredentials(creds);
   };
+
+  if (showRegister) {
+    return <CustomerRegister onSwitchToLogin={() => setShowRegister(false)} />;
+  }
 
   return (
     <div className="login-container">
@@ -41,13 +47,13 @@ function Login() {
 
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
-            <label><User size={18} /> Username</label>
+            <label><Mail size={18} /> Email / Username</label>
             <input
               type="text"
-              value={credentials.username}
-              onChange={(e) => setCredentials({...credentials, username: e.target.value})}
+              value={credentials.emailOrUsername}
+              onChange={(e) => setCredentials({...credentials, emailOrUsername: e.target.value})}
               className="form-control"
-              placeholder="Enter username"
+              placeholder="Enter email or username"
               required
             />
           </div>
@@ -72,6 +78,13 @@ function Login() {
           </button>
         </form>
 
+        <div className="register-link">
+          <p>Don't have an account?</p>
+          <button onClick={() => setShowRegister(true)} className="btn-register-link">
+            Register as Customer
+          </button>
+        </div>
+
         <div className="demo-credentials">
           <p className="demo-title">Demo Credentials:</p>
           <div className="demo-buttons">
@@ -95,6 +108,7 @@ function Login() {
 }
 
 export default Login;
+
 
 
 

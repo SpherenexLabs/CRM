@@ -1,6 +1,7 @@
 ﻿import { useState } from 'react';
 import { Package, AlertTriangle, TrendingUp, Store } from 'lucide-react';
 import useInventoryStore from '../../store/inventoryStore';
+import useAuthStore from '../../store/authStore';
 import InventoryList from './InventoryList';
 import StockAlerts from './StockAlerts';
 import StockTransfer from './StockTransfer';
@@ -9,6 +10,7 @@ import AddInventory from './AddInventory';
 import './Inventory.css';
 
 function Inventory() {
+  const { currentUser } = useAuthStore();
   const [activeTab, setActiveTab] = useState('all');
   const [selectedStore, setSelectedStore] = useState('all');
   
