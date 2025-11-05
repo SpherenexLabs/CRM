@@ -219,7 +219,7 @@ const useCustomerStore = create((set, get) => ({
       tierDistribution,
       averageSpent: averageSpent || 0,
       totalRevenue: totalRevenue || 0,
-      avgFeedbackRating: avgFeedbackRating.toFixed(2)
+      avgFeedbackRating: avgFeedbackRating || 0
     };
   },
 }));
