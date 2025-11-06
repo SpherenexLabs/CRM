@@ -957,13 +957,13 @@
 }
 
 .modal-overlay {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
+  z-index: 1;
 }
 
 .modal-content {
@@ -975,7 +975,7 @@
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
-  z-index: 1001;
+  z-index: 2;
   animation: modalSlideIn 0.3s ease-out;
 }
 

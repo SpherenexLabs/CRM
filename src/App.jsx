@@ -1,8 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingCart, CreditCard, Truck, Users, Menu, X, BarChart3, Brain, LogOut } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, CreditCard, Truck, Users, Menu, X, BarChart3, Brain, LogOut, Plus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Dashboard from './components/Dashboard/Dashboard';
 import Inventory from './components/Inventory/Inventory';
+import ProductEntry from './components/Inventory/ProductEntry';
 import Orders from './components/Orders/Orders';
 import Payments from './components/Payments/Payments';
 import Delivery from './components/Delivery/Delivery';
@@ -27,6 +28,7 @@ function Navigation() {
   const navItems = [
     { path: '/', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
     { path: '/inventory', icon: <Package size={20} />, label: 'Inventory' },
+    { path: '/add-product', icon: <Plus size={20} />, label: 'Add Product' },
     { path: '/orders', icon: <ShoppingCart size={20} />, label: 'Orders' },
     { path: '/payments', icon: <CreditCard size={20} />, label: 'Payments' },
     { path: '/delivery', icon: <Truck size={20} />, label: 'Delivery' },
@@ -178,6 +180,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/inventory" element={<Inventory />} />
+              <Route path="/add-product" element={<ProductEntry />} />
               <Route path="/orders" element={<Orders />} />
               <Route path="/payments" element={<Payments />} />
               <Route path="/delivery" element={<Delivery />} />

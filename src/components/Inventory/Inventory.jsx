@@ -6,7 +6,6 @@ import InventoryList from './InventoryList';
 import StockAlerts from './StockAlerts';
 import StockTransfer from './StockTransfer';
 import StoreManagement from './StoreManagement';
-import AddInventory from './AddInventory';
 import './Inventory.css';
 
 function Inventory() {
@@ -22,29 +21,38 @@ function Inventory() {
     getInventoryByStore 
   } = useInventoryStore();
 
+  // Filter inventory based on user role
+  const userInventory = currentUser && currentUser.role === 'Customer'
+    ? inventory.filter(item => item.customerAccountId === currentUser.id)
+    : inventory;
+
+  // Calculate stats based on filtered inventory
+  const customerStockAlerts = userInventory.filter(item => item.quantity <= item.minThreshold);
+  const customerTotalValue = userInventory.reduce((total, item) => total + (item.quantity * item.price), 0);
+
   const stockAlerts = getStockAlerts();
   const totalValue = getTotalInventoryValue();
 
   const filteredInventory = selectedStore === 'all' 
-    ? inventory 
-    : getInventoryByStore(parseInt(selectedStore));
+    ? userInventory 
+    : userInventory.filter(item => item.storeId === selectedStore);
 
   const stats = [
     {
       title: 'Total Inventory Value',
-      value: `₹${totalValue.toLocaleString()}`,
+      value: `₹${(currentUser?.role === 'Customer' ? customerTotalValue : totalValue).toLocaleString()}`,
       icon: <TrendingUp className="stat-icon" />,
       color: 'blue'
     },
     {
       title: 'Total Items',
-      value: inventory.length,
+      value: userInventory.length,
       icon: <Package className="stat-icon" />,
       color: 'green'
     },
     {
       title: 'Low Stock Alerts',
-      value: stockAlerts.length,
+      value: currentUser?.role === 'Customer' ? customerStockAlerts.length : stockAlerts.length,
       icon: <AlertTriangle className="stat-icon" />,
       color: 'red'
     },
@@ -117,7 +125,6 @@ function Inventory() {
                 <option key={store.id} value={store.id}>{store.name}</option>
               ))}
             </select>
-            <AddInventory stores={stores} />
           </div>
         )}
       </div>
@@ -127,7 +134,7 @@ function Inventory() {
           <InventoryList inventory={filteredInventory} stores={stores} />
         )}
         {activeTab === 'alerts' && (
-          <StockAlerts alerts={stockAlerts} stores={stores} />
+          <StockAlerts alerts={currentUser?.role === 'Customer' ? customerStockAlerts : stockAlerts} stores={stores} />
         )}
         {activeTab === 'transfer' && (
           <StockTransfer stores={stores} />

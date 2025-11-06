@@ -76,12 +76,33 @@ const useInventoryStore = create((set, get) => ({
     try {
       const inventoryRef = ref(db, 'inventory');
       const newItemRef = push(inventoryRef);
-      await firebaseSet(newItemRef, {
-        ...item,
+      
+      // Clean the item data to ensure no invalid values
+      const cleanItem = {
+        sku: item.sku,
+        productName: item.productName,
+        category: item.category,
+        storeId: item.storeId,
+        quantity: Number(item.quantity) || 0,
+        minThreshold: Number(item.minThreshold) || 10,
+        price: Number(item.price) || 0,
+        cost: Number(item.cost) || 0,
+        supplier: item.supplier || '',
+        tags: Array.isArray(item.tags) ? item.tags : [],
         lastUpdated: Date.now()
-      });
+      };
+
+      // Add customerAccountId if provided (for customer-added inventory)
+      if (item.customerAccountId) {
+        cleanItem.customerAccountId = item.customerAccountId;
+      }
+
+      await firebaseSet(newItemRef, cleanItem);
+      return { success: true, id: newItemRef.key };
     } catch (error) {
+      console.error('Error adding inventory item:', error);
       set({ error: error.message });
+      return { success: false, error: error.message };
     }
   },
 

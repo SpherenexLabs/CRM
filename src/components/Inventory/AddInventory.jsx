@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Plus, X, Package } from 'lucide-react';
 import useInventoryStore from '../../store/inventoryStore';
+import useAuthStore from '../../store/authStore';
 
 function AddInventory({ stores }) {
   const { addInventoryItem } = useInventoryStore();
+  const { currentUser } = useAuthStore();
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     sku: '',
@@ -15,7 +17,7 @@ function AddInventory({ stores }) {
     price: 0,
     cost: 0,
     supplier: '',
-    tags: []
+    tags: ''
   });
 
   const categories = ['Electronics', 'Accessories', 'Clothing', 'Home', 'Sports', 'Books', 'Other'];
@@ -23,29 +25,57 @@ function AddInventory({ stores }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    const result = await addInventoryItem({
-      ...formData,
-      quantity: parseInt(formData.quantity),
-      minThreshold: parseInt(formData.minThreshold),
-      price: parseFloat(formData.price),
-      cost: parseFloat(formData.cost),
-      tags: formData.tags.length > 0 ? formData.tags.split(',').map(t => t.trim()) : []
-    });
+    try {
+      // Validate required fields
+      if (!formData.sku || !formData.productName || !formData.category || !formData.storeId) {
+        alert('Please fill in all required fields');
+        return;
+      }
 
-    alert('Product added successfully!');
-    setShowForm(false);
-    setFormData({
-      sku: '',
-      productName: '',
-      category: '',
-      storeId: '',
-      quantity: 0,
-      minThreshold: 10,
-      price: 0,
-      cost: 0,
-      supplier: '',
-      tags: []
-    });
+      // Clean and validate data before sending
+      const cleanData = {
+        sku: formData.sku.trim(),
+        productName: formData.productName.trim(),
+        category: formData.category,
+        storeId: formData.storeId,
+        quantity: parseInt(formData.quantity) || 0,
+        minThreshold: parseInt(formData.minThreshold) || 10,
+        price: parseFloat(formData.price) || 0,
+        cost: parseFloat(formData.cost) || 0,
+        supplier: formData.supplier.trim(),
+        tags: formData.tags.length > 0 ? formData.tags.split(',').map(t => t.trim()).filter(t => t) : []
+      };
+
+      // Add customer account ID if user is a customer
+      if (currentUser && currentUser.role === 'Customer') {
+        cleanData.customerAccountId = currentUser.id;
+      }
+
+      const result = await addInventoryItem(cleanData);
+      
+      if (result && result.success === false) {
+        alert('Failed to add product: ' + (result.error || 'Unknown error'));
+        return;
+      }
+
+      alert('Product added successfully!');
+      setShowForm(false);
+      setFormData({
+        sku: '',
+        productName: '',
+        category: '',
+        storeId: '',
+        quantity: 0,
+        minThreshold: 10,
+        price: 0,
+        cost: 0,
+        supplier: '',
+        tags: ''
+      });
+    } catch (error) {
+      console.error('Error adding product:', error);
+      alert('Failed to add product. Please try again.');
+    }
   };
 
   const handleCancel = () => {
@@ -60,7 +90,7 @@ function AddInventory({ stores }) {
       price: 0,
       cost: 0,
       supplier: '',
-      tags: []
+      tags: ''
     });
   };
 
