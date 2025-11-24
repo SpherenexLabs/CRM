@@ -1,4 +1,5 @@
-﻿import { useState } from 'react';
+import React from 'react';
+import { useState } from 'react';
 import { TrendingUp, Brain, BarChart3, Target, AlertCircle } from 'lucide-react';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import useMLStore from '../../store/mlStore';
@@ -33,34 +34,29 @@ function MLInsights() {
     ? allOrders.filter(order => order.customerAccountId === currentUser.id)
     : allOrders;
 
-  // Generate predictions on mount using REAL DATA
-  const [salesPredictions] = useState(() => {
-    return generateSalesPredictions(inventory.slice(0, 5), orders);
-  });
 
-  const [demandForecast] = useState(() => 
-    inventory.length > 0 ? generateDemandForecast(inventory[0], 30, orders) : []
-  );
+  // Make ML Insights reactive to inventory, orders, and customers
+  const [salesPredictions, setSalesPredictions] = useState([]);
+  const [demandForecast, setDemandForecast] = useState([]);
+  const [topSellers, setTopSellers] = useState([]);
+  const [restockingPlan, setRestockingPlan] = useState([]);
+  const [churnPredictions, setChurnPredictions] = useState([]);
+  const [customerValues, setCustomerValues] = useState([]);
+  const [temporalForecast, setTemporalForecast] = useState([]);
+  const [seasonalTrends, setSeasonalTrends] = useState([]);
 
-  const [topSellers] = useState(() => predictTopSellers(inventory, orders));
-  
-  const [restockingPlan] = useState(() => 
-    optimizeRestocking(inventory, salesPredictions)
-  );
-
-  const [churnPredictions] = useState(() => 
-    predictCustomerChurn(customers, orders)
-  );
-
-  const [customerValues] = useState(() => 
-    classifyCustomerValue(customers, orders)
-  );
-
-  const [temporalForecast] = useState(() => 
-    inventory.length > 0 ? generateTemporalForecast(inventory[0], 12) : []
-  );
-
-  const [seasonalTrends] = useState(() => analyzeSeasonalTrends());
+  // Update predictions when inventory, orders, or customers change
+  React.useEffect(() => {
+    setSalesPredictions(generateSalesPredictions(inventory.slice(0, 5), orders));
+    setDemandForecast(inventory.length > 0 ? generateDemandForecast(inventory[0], 30, orders) : []);
+    setTopSellers(predictTopSellers(inventory, orders));
+    // Use the latest predictions for restocking
+    setRestockingPlan(optimizeRestocking(inventory, generateSalesPredictions(inventory.slice(0, 5), orders)));
+    setChurnPredictions(predictCustomerChurn(customers, orders));
+    setCustomerValues(classifyCustomerValue(customers, orders));
+    setTemporalForecast(inventory.length > 0 ? generateTemporalForecast(inventory[0], 12) : []);
+    setSeasonalTrends(analyzeSeasonalTrends());
+  }, [inventory, orders, customers]);
 
   return (
     <div className="ml-insights-container">
