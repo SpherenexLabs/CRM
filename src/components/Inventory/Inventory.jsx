@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { Package, AlertTriangle, TrendingUp, Store } from 'lucide-react';
 import useInventoryStore from '../../store/inventoryStore';
 import useAuthStore from '../../store/authStore';
@@ -30,7 +30,8 @@ function Inventory() {
   const customerStockAlerts = userInventory.filter(item => item.quantity <= item.minThreshold);
   const customerTotalValue = userInventory.reduce((total, item) => total + (item.quantity * item.price), 0);
 
-  const stockAlerts = getStockAlerts();
+  // Always derive stock alerts from current inventory for reactivity
+  const stockAlerts = userInventory.filter(item => item.quantity <= item.minThreshold);
   const totalValue = getTotalInventoryValue();
 
   const filteredInventory = selectedStore === 'all' 
@@ -134,7 +135,7 @@ function Inventory() {
           <InventoryList inventory={filteredInventory} stores={stores} />
         )}
         {activeTab === 'alerts' && (
-          <StockAlerts alerts={currentUser?.role === 'Customer' ? customerStockAlerts : stockAlerts} stores={stores} />
+          <StockAlerts alerts={stockAlerts} stores={stores} />
         )}
         {activeTab === 'transfer' && (
           <StockTransfer stores={stores} />
